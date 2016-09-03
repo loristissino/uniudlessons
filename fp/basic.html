@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Frame Processing</title>
+<script src='vendor/parseUri/parseUri.js'></script>
+
+<script>
+
+var backgroundImage;
+var currentImage;
+var backgroundCanvas;
+var currentCanvas;
+var resultCanvas;
+var count=0;
+
+var backgroundContext;
+var currentContext;
+var resultContext;
+
+
+function activateButton() {
+    count++;
+    console.log("count: " + count);
+    if (count>=2) {
+        console.log("activating button...");
+        document.getElementById('processButton').style='display:visible';
+        backgroundContext = backgroundCanvas.getContext('2d');
+        backgroundContext.drawImage(backgroundImage, 0, 0);
+        currentContext = currentCanvas.getContext('2d');
+        currentContext.drawImage(currentImage, 0, 0);
+    }
+}
+
+function loadPictures() {
+    
+    var uri = parseUri ( document.location );
+    
+    var background = uri.queryKey.background;
+    var current = uri.queryKey.current;
+    
+    console.log("Loading...");
+    backgroundImage = new Image();
+    backgroundImage.style.display = 'none';
+    backgroundImage.addEventListener("load", activateButton, false);
+    backgroundImage.src = 'images/' + background;
+    backgroundCanvas = document.getElementById("backgroundCanvas");
+    
+    currentImage = new Image();
+    currentImage.style.display = 'none';
+    currentImage.addEventListener("load", activateButton, false);
+    currentImage.src = 'images/' + current;
+    currentCanvas = document.getElementById("currentCanvas");
+    
+}
+
+
+
+
+function process() {
+    
+    console.log("processing");
+    resultCanvas = document.getElementById("resultCanvas");
+    resultContext = resultCanvas.getContext("2d");
+    
+    var backgroundPixels = backgroundContext.getImageData(0,0, backgroundCanvas.width, backgroundCanvas.height).data;
+    var currentPixels = currentContext.getImageData(0,0, currentCanvas.width, currentCanvas.height).data;
+    
+    var resultImageData = resultContext.getImageData(0,0, resultCanvas.width, resultCanvas.height);
+    var resultPixels = resultImageData.data;
+    
+    var index;
+    var bw;
+    
+    var uri = parseUri ( document.location );
+    var level = uri.queryKey.level || 1;
+    var threshold = uri.queryKey.threshold || 50;
+    
+    for (row = 0; row < backgroundCanvas.height; row++) {
+        for (col = 0; col < backgroundCanvas.width; col++) {
+            index = 4 * (row * backgroundCanvas.width + col);
+            
+            resultPixels[index]     = Math.abs(currentPixels[index]    - backgroundPixels[index]);       // red
+            resultPixels[index + 1] = Math.abs(currentPixels[index +1] - backgroundPixels[index + 1]);   // green
+            resultPixels[index + 2] = Math.abs(currentPixels[index +2] - backgroundPixels[index + 2]);   // blue
+            resultPixels[index + 3] = currentPixels[index + 3];                                          // alpha
+            
+            if (level >= 2) {
+                bw = resultPixels[index] * .30 + resultPixels[index + 1] * .59 + resultPixels[index + 2] * .11;
+                resultPixels[index] = bw;
+                resultPixels[index + 1 ] = bw;
+                resultPixels[index + 2] = bw;
+            }
+            if (level >= 3) {
+                bw = bw > threshold ? 255 : 0;
+                resultPixels[index] = bw;
+                resultPixels[index + 1 ] = bw;
+                resultPixels[index + 2] = bw;
+            }
+            
+        }
+    }  
+    
+    resultContext.putImageData(resultImageData, 0, 0);
+    console.log("end of processing...");
+};
+
+</script>
+</head>
+
+
+<body onLoad="loadPictures()">
+
+    <canvas id="backgroundCanvas" width="320" height="240"></canvas>
+    <canvas id="currentCanvas" width="320" height="240"></canvas>
+
+    <hr />
+    <input id="processButton" type="button" onclick="process()" value="Process" style="display:none" />
+    <br />
+    <br />
+    <canvas id="resultCanvas" width="320" height="240"></canvas>
+
+</body>
+</html>
