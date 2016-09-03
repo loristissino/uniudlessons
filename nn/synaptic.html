@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Synaptic</title>
+<style>
+body {
+    background-color: #FFF; 
+}
+
+td {
+    width: 300px;
+}
+</style>
+<script src='vendor/synaptic/synaptic.js'></script>
+<script src='vendor/parseUri/parseUri.js'></script>
+<script>
+
+var uri = parseUri ( document.location );
+
+var iterations = uri.queryKey.iterations || 1000;
+var outputs = uri.queryKey.outputs || '0111';  // defaults to Logic OR
+
+var Neuron = synaptic.Neuron,
+    Layer = synaptic.Layer,
+    Network = synaptic.Network,
+    Trainer = synaptic.Trainer,
+    Architect = synaptic.Architect;
+    
+function Perceptron(input, hidden, output)
+{
+    // create the layers
+    var inputLayer = new Layer(input);
+    var hiddenLayer = new Layer(hidden);
+    var outputLayer = new Layer(output);
+
+    // connect the layers
+    inputLayer.project(hiddenLayer);
+    hiddenLayer.project(outputLayer);
+
+    // set the layers
+    this.set({
+        input: inputLayer,
+        hidden: [hiddenLayer],
+        output: outputLayer
+    });
+}
+
+function run() {
+
+    // extend the prototype chain
+    Perceptron.prototype = new Network();
+    Perceptron.prototype.constructor = Perceptron;
+
+    var myNetwork = new Perceptron(2,3,1);
+    var myTrainer = new Trainer(myNetwork);
+    
+    var trainer = new Trainer(myNetwork)
+
+    var trainingSet = [
+      {
+        input: [0,0],
+        output: outputs.charAt(0)
+      },
+      {
+        input: [0,1],
+        output: outputs.charAt(1)
+      },
+      {
+        input: [1,0],
+        output: outputs.charAt(2)
+      },
+      {
+        input: [1,1],
+        output: outputs.charAt(3)
+      },
+    ]
+
+    var count = 0;
+    console.log('Starting training');
+    var training = trainer.train(trainingSet, {
+        iterations: iterations,
+        schedule: {
+            every: 1, // repeat this task every 500 iterations
+            do: function(data) {
+                console.log ('running...' + count++);
+
+            }
+        }
+    });
+    console.log('Training ended');
+    console.log (training);
+
+    console.log(myNetwork.activate([0,0]));
+    console.log(myNetwork.activate([0,1]))
+    console.log(myNetwork.activate([1,0]));
+    console.log(myNetwork.activate([1,1]))
+ 
+    console.log(myNetwork);
+    
+    document.getElementById('bias2').innerHTML = myNetwork.layers.hidden[0].list[0].bias;
+    document.getElementById('weight2a').innerHTML = myNetwork.layers.hidden[0].list[0].connections.inputs['6'].weight;
+    document.getElementById('weight2b').innerHTML = myNetwork.layers.hidden[0].list[0].connections.inputs['9'].weight;
+
+    document.getElementById('bias3').innerHTML = myNetwork.layers.hidden[0].list[1].bias;
+    document.getElementById('weight3a').innerHTML = myNetwork.layers.hidden[0].list[1].connections.inputs['7'].weight;
+    document.getElementById('weight3b').innerHTML = myNetwork.layers.hidden[0].list[1].connections.inputs['10'].weight;
+
+    document.getElementById('bias4').innerHTML = myNetwork.layers.hidden[0].list[2].bias;
+    document.getElementById('weight4a').innerHTML = myNetwork.layers.hidden[0].list[2].connections.inputs['8'].weight;
+    document.getElementById('weight4b').innerHTML = myNetwork.layers.hidden[0].list[2].connections.inputs['11'].weight;
+
+    document.getElementById('bias5').innerHTML = myNetwork.layers.output.list[0].bias;
+    document.getElementById('weight5a').innerHTML = myNetwork.layers.output.list[0].connections.inputs['12'].weight;
+    document.getElementById('weight5b').innerHTML = myNetwork.layers.output.list[0].connections.inputs['13'].weight;
+    document.getElementById('weight5c').innerHTML = myNetwork.layers.output.list[0].connections.inputs['14'].weight;
+    
+
+    document.getElementById('iterations').innerHTML = training.iterations;
+    document.getElementById('out00').innerHTML = myNetwork.activate([0,0]);
+    document.getElementById('out01').innerHTML = myNetwork.activate([0,1]);
+    document.getElementById('out10').innerHTML = myNetwork.activate([1,0]);
+    document.getElementById('out11').innerHTML = myNetwork.activate([1,1]);
+
+}
+    
+</script>
+
+</head>
+
+<body onload="run()">
+
+<table>
+
+<tr>
+    <th>input</th>
+    <th>hidden</th>
+    <th>output</th>
+</tr>
+
+<tr>
+    <td>&nbsp;</td>
+    <td>neuron: 2<br />bias: <span id="bias2"></span><br />weight a: <span id="weight2a"></span><br />weight b: <span id="weight2b"></span></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr>
+    <td>neuron: 0</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr>
+    <td>&nbsp;</td>
+    <td>neuron: 3<br />bias: <span id="bias3"></span><br />weight a: <span id="weight3a"></span><br />weight b: <span id="weight3b"></span></td>
+    <td>neuron: 5<br />bias: <span id="bias5"></span><br />weight a: <span id="weight5a"></span><br />weight b: <span id="weight5b"></span><br />weight c: <span id="weight5c"></span></td>
+</tr>
+
+<tr>
+    <td>neuron: 1</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr>
+    <td>&nbsp;</td>
+    <td>neuron: 4<br />bias: <span id="bias4"></span><br />weight a: <span id="weight4a"></span><br />weight b: <span id="weight4b"></span></td>
+    <td>&nbsp;</td>
+</tr>
+
+
+</table>
+
+<hr />
+
+<p>After <span id="iterations">0</span> training iterations:</p>
+<div>Output for (0, 0): <span id="out00"></span></div>
+<div>Output for (0, 1): <span id="out01"></span></div>
+<div>Output for (1, 0): <span id="out10"></span></div>
+<div>Output for (1, 1): <span id="out11"></span></div>
+
+</body>
+
+</html>
