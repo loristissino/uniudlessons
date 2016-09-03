@@ -85,6 +85,8 @@ function process() {
             resultPixels[index + 2] = Math.abs(currentPixels[index +2] - backgroundPixels[index + 2]);   // blue
             resultPixels[index + 3] = currentPixels[index + 3];                                          // alpha
             
+            // part hidden to students -- begin
+            
             if (level >= 2) {
                 bw = resultPixels[index] * .30 + resultPixels[index + 1] * .59 + resultPixels[index + 2] * .11;
                 resultPixels[index] = bw;
@@ -97,6 +99,8 @@ function process() {
                 resultPixels[index + 1 ] = bw;
                 resultPixels[index + 2] = bw;
             }
+            
+            // part hidden to students -- end
             
         }
     }  
