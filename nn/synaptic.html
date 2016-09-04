@@ -9,7 +9,7 @@ body {
 }
 
 td {
-    width: 300px;
+    width: 400px;
 }
 </style>
 <script src='vendor/synaptic/synaptic.js'></script>
@@ -26,7 +26,13 @@ var Neuron = synaptic.Neuron,
     Network = synaptic.Network,
     Trainer = synaptic.Trainer,
     Architect = synaptic.Architect;
-    
+
+var myNetwork,
+    myTrainer,
+    trainer,
+    trainingSet;
+
+
 function Perceptron(input, hidden, output)
 {
     // create the layers
@@ -52,12 +58,12 @@ function run() {
     Perceptron.prototype = new Network();
     Perceptron.prototype.constructor = Perceptron;
 
-    var myNetwork = new Perceptron(2,3,1);
-    var myTrainer = new Trainer(myNetwork);
+    myNetwork = new Perceptron(2,3,1);
+    myTrainer = new Trainer(myNetwork);
     
-    var trainer = new Trainer(myNetwork)
+    trainer = new Trainer(myNetwork)
 
-    var trainingSet = [
+    trainingSet = [
       {
         input: [0,0],
         output: outputs.charAt(0)
@@ -75,6 +81,10 @@ function run() {
         output: outputs.charAt(3)
       },
     ]
+    
+}
+
+function train() {
 
     var count = 0;
     console.log('Starting training');
@@ -83,37 +93,39 @@ function run() {
         schedule: {
             every: 1, // repeat this task every 500 iterations
             do: function(data) {
-                console.log ('running...' + count++);
-
+                //console.log ('running...' + count++);
             }
         }
     });
     console.log('Training ended');
-    console.log (training);
+    //console.log (training);
 
+    /*
     console.log(myNetwork.activate([0,0]));
     console.log(myNetwork.activate([0,1]))
     console.log(myNetwork.activate([1,0]));
     console.log(myNetwork.activate([1,1]))
- 
-    console.log(myNetwork);
+    */
+    //console.log(myNetwork);
+
+    var json = myNetwork.toJSON();
     
-    document.getElementById('bias2').innerHTML = myNetwork.layers.hidden[0].list[0].bias;
-    document.getElementById('weight2a').innerHTML = myNetwork.layers.hidden[0].list[0].connections.inputs['6'].weight;
-    document.getElementById('weight2b').innerHTML = myNetwork.layers.hidden[0].list[0].connections.inputs['9'].weight;
+    document.getElementById('bias2').innerHTML = json.neurons[2].bias;
+    document.getElementById('weight2a').innerHTML = json.connections[0].weight; // 0 to 2
+    document.getElementById('weight2b').innerHTML = json.connections[3].weight; // 1 to 2
 
-    document.getElementById('bias3').innerHTML = myNetwork.layers.hidden[0].list[1].bias;
-    document.getElementById('weight3a').innerHTML = myNetwork.layers.hidden[0].list[1].connections.inputs['7'].weight;
-    document.getElementById('weight3b').innerHTML = myNetwork.layers.hidden[0].list[1].connections.inputs['10'].weight;
+    document.getElementById('bias3').innerHTML = json.neurons[3].bias;
+    document.getElementById('weight3a').innerHTML = json.connections[1].weight; // 0 to 3
+    document.getElementById('weight3b').innerHTML = json.connections[4].weight; // 1 to 3
 
-    document.getElementById('bias4').innerHTML = myNetwork.layers.hidden[0].list[2].bias;
-    document.getElementById('weight4a').innerHTML = myNetwork.layers.hidden[0].list[2].connections.inputs['8'].weight;
-    document.getElementById('weight4b').innerHTML = myNetwork.layers.hidden[0].list[2].connections.inputs['11'].weight;
+    document.getElementById('bias4').innerHTML = json.neurons[4].bias;
+    document.getElementById('weight4a').innerHTML = json.connections[2].weight; // 0 to 4
+    document.getElementById('weight4b').innerHTML = json.connections[5].weight; // 1 to 4
 
-    document.getElementById('bias5').innerHTML = myNetwork.layers.output.list[0].bias;
-    document.getElementById('weight5a').innerHTML = myNetwork.layers.output.list[0].connections.inputs['12'].weight;
-    document.getElementById('weight5b').innerHTML = myNetwork.layers.output.list[0].connections.inputs['13'].weight;
-    document.getElementById('weight5c').innerHTML = myNetwork.layers.output.list[0].connections.inputs['14'].weight;
+    document.getElementById('bias5').innerHTML = json.neurons[5].bias;
+    document.getElementById('weight5a').innerHTML = json.connections[6].weight; // 2 to 5
+    document.getElementById('weight5b').innerHTML = json.connections[7].weight; // 3 to 5
+    document.getElementById('weight5c').innerHTML = json.connections[8].weight; // 4 to 5
     
 
     document.getElementById('iterations').innerHTML = training.iterations;
@@ -121,7 +133,26 @@ function run() {
     document.getElementById('out01').innerHTML = myNetwork.activate([0,1]);
     document.getElementById('out10').innerHTML = myNetwork.activate([1,0]);
     document.getElementById('out11').innerHTML = myNetwork.activate([1,1]);
+    
+    var text = [
+        'bias2\t' + json.neurons[2].bias, 
+        'weight2a\t' + json.connections[0].weight,
+        'weight2b\t' + json.connections[3].weight,
+        'bias3\t' + json.neurons[3].bias,
+        'weight3a\t' + json.connections[1].weight,
+        'weight3b\t' + json.connections[4].weight,
+        'bias4\t' + json.neurons[4].bias,
+        'weight4a\t' + json.connections[2].weight,
+        'weight4b\t' + json.connections[5].weight,
+        'bias5\t' + json.neurons[5].bias,
+        'weight5a\t' + json.connections[6].weight,
+        'weight5b\t' + json.connections[7].weight,
+        'weight5c\t' + json.connections[8].weight
+        ].join("\n").replace(/\./g, ",");
+    
+    document.getElementById('console').innerHTML = text;
 
+    
 }
     
 </script>
@@ -129,6 +160,8 @@ function run() {
 </head>
 
 <body onload="run()">
+
+<p>Example based on Juan Cazan's <a href="http://synaptic.juancazala.com/">Synaptic javascript architecture-free neural network library</a></p>
 
 <table>
 
@@ -140,7 +173,7 @@ function run() {
 
 <tr>
     <td>&nbsp;</td>
-    <td>neuron: 2<br />bias: <span id="bias2"></span><br />weight a: <span id="weight2a"></span><br />weight b: <span id="weight2b"></span></td>
+    <td>neuron: 2<br />bias: <span id="bias2"></span><br />weight a (from 0): <span id="weight2a"></span><br />weight b (from 1): <span id="weight2b"></span></td>
     <td>&nbsp;</td>
 </tr>
 
@@ -152,8 +185,8 @@ function run() {
 
 <tr>
     <td>&nbsp;</td>
-    <td>neuron: 3<br />bias: <span id="bias3"></span><br />weight a: <span id="weight3a"></span><br />weight b: <span id="weight3b"></span></td>
-    <td>neuron: 5<br />bias: <span id="bias5"></span><br />weight a: <span id="weight5a"></span><br />weight b: <span id="weight5b"></span><br />weight c: <span id="weight5c"></span></td>
+    <td>neuron: 3<br />bias: <span id="bias3"></span><br />weight a (from 0): <span id="weight3a"></span><br />weight b (from 1): <span id="weight3b"></span></td>
+    <td>neuron: 5<br />bias: <span id="bias5"></span><br />weight a (from 2): <span id="weight5a"></span><br />weight b (from 3): <span id="weight5b"></span><br />weight c (from 4): <span id="weight5c"></span></td>
 </tr>
 
 <tr>
@@ -164,7 +197,7 @@ function run() {
 
 <tr>
     <td>&nbsp;</td>
-    <td>neuron: 4<br />bias: <span id="bias4"></span><br />weight a: <span id="weight4a"></span><br />weight b: <span id="weight4b"></span></td>
+    <td>neuron: 4<br />bias: <span id="bias4"></span><br />weight a (from 0): <span id="weight4a"></span><br />weight b (from 1): <span id="weight4b"></span></td>
     <td>&nbsp;</td>
 </tr>
 
@@ -173,12 +206,18 @@ function run() {
 
 <hr />
 
+<div><button onclick="train()" value="train">Train</button></div>
+
 <p>After <span id="iterations">0</span> training iterations:</p>
 <div>Output for (0, 0): <span id="out00"></span></div>
 <div>Output for (0, 1): <span id="out01"></span></div>
 <div>Output for (1, 0): <span id="out10"></span></div>
 <div>Output for (1, 1): <span id="out11"></span></div>
 
+<hr />
+<p>Output for spreadsheet use:<br />
+<textarea id="console"></textarea>
+</p>
 </body>
 
 </html>
